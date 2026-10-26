@@ -41,4 +41,6 @@ export async function flashEsp32(port, file, { address, eraseAll, onProgress }) 
   } finally {
     await transport.disconnect();
   }
+
+  return port;
 }

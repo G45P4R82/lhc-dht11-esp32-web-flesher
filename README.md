@@ -5,8 +5,10 @@ navegador usando Web Serial e `esptool.js`.
 
 ## Estado atual
 
-Este repositório contém a base inicial do flasher. A interface já está
-preparada para selecionar um firmware local e iniciar a gravação no ESP32.
+O flasher permite selecionar a placa, informar que o sensor é um DHT11 no
+GPIO5, preencher os dados equivalentes ao `secrets.h`, revisar um resumo e
+confirmar a gravação. Depois do upload, ele envia as credenciais pela mesma
+porta USB para serem salvas na NVS do ESP32.
 
 O navegador precisa ser Chrome ou Edge em HTTPS. O usuário deve clicar no
 botão para autorizar a porta serial.
@@ -27,6 +29,21 @@ https://github.com/G45P4R82/lhc-campinas-esp32-dht11
 
 O binário não deve conter credenciais MQTT ou Wi-Fi reais compartilhadas
 publicamente.
+
+## Fluxo de configuração
+
+1. Selecione o firmware `.bin`.
+2. Confirme `ESP32 Dev Module`, `DHT11` e `GPIO5`.
+3. Preencha Wi-Fi e MQTT.
+4. Clique em `Revisar configuração`.
+5. Confirme `Sim, gravar na placa`.
+6. Escolha a porta USB quando o navegador solicitar.
+7. Aguarde o firmware ser gravado.
+8. O flasher envia `CONFIG_SET` pela serial.
+9. O firmware salva os dados na NVS e passa a usá-los para Wi-Fi/MQTT.
+
+As credenciais não são enviadas a um servidor. Elas ficam no navegador durante
+a sessão e são transmitidas diretamente para o ESP32.
 
 ## Desenvolvimento local
 
