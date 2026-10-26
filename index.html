@@ -49,8 +49,13 @@
       <div><label for="mqtt-password">Senha MQTT</label><input id="mqtt-password" type="password" autocomplete="off"></div>
     </div>
     <h2>3. Firmware</h2>
-    <label for="firmware">Arquivo `.bin` compilado</label>
-    <input id="firmware" type="file" accept=".bin,application/octet-stream">
+    <label for="firmware">Firmware</label>
+    <select id="firmware">
+      <option value="firmware/esp32-dht11-v1.0.0-app.bin">Atualização da aplicação (0x10000)</option>
+      <option value="firmware/esp32-dht11-v1.0.0-merged.bin">Instalação completa (imagem combinada)</option>
+    </select>
+    <label for="custom-firmware">Ou selecione um `.bin` próprio</label>
+    <input id="custom-firmware" type="file" accept=".bin,application/octet-stream">
     <label><input id="full-image" type="checkbox"> Instalação completa: gravar em <code>0x000000</code> e apagar a flash</label>
     <p class="warning">As credenciais serão enviadas diretamente pela USB e salvas na memória NVS do ESP32. Elas não são enviadas para um servidor.</p>
     <button id="review" type="button" disabled>Revisar configuração</button>

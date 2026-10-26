@@ -2,6 +2,7 @@ import { flashEsp32 } from './flash.js';
 
 const fields = {
   firmware: document.querySelector('#firmware'),
+  customFirmware: document.querySelector('#custom-firmware'),
   fullImage: document.querySelector('#full-image'),
   board: document.querySelector('#board'),
   sensor: document.querySelector('#sensor'),
@@ -36,7 +37,7 @@ function configuration() {
 }
 
 function validate(config) {
-  if (!fields.firmware.files?.length) return 'Selecione o arquivo .bin do firmware.';
+  if (!fields.firmware.value && !fields.customFirmware.files?.length) return 'Selecione o firmware.';
   if (!config.wifiSsid || !config.wifiPassword || !config.mqttHost || !config.mqttUser || !config.mqttPassword) {
     return 'Preencha todos os campos de Wi-Fi e MQTT.';
   }
@@ -52,11 +53,16 @@ function escapedSummary(config) {
     `Sensor: ${fields.sensor.value} no ${fields.pin.value}`,
     `Wi-Fi: ${config.wifiSsid}`,
     `MQTT: ${config.mqttHost}:${config.mqttPort}`,
-    `Firmware: ${fields.firmware.files[0].name}`,
+    `Firmware: ${selectedFirmware().name}`,
     '',
     'A senha será enviada somente pela USB e salva no ESP32.',
     'Deseja gravar esta configuração na placa?',
   ].join('\n');
+}
+
+function selectedFirmware() {
+  const custom = fields.customFirmware.files?.[0];
+  return custom || { name: fields.firmware.value.split('/').pop(), url: fields.firmware.value };
 }
 
 reviewButton.addEventListener('click', () => {
@@ -77,8 +83,15 @@ cancelButton.addEventListener('click', () => {
 });
 
 fields.firmware.addEventListener('change', () => {
-  reviewButton.disabled = !fields.firmware.files?.length;
-  if (fields.firmware.files?.length) log(`Firmware selecionado: ${fields.firmware.files[0].name}`);
+  reviewButton.disabled = !fields.firmware.value;
+  fields.fullImage.checked = fields.firmware.value.includes('-merged');
+  log(`Firmware selecionado: ${selectedFirmware().name}`);
+});
+
+fields.customFirmware.addEventListener('change', () => {
+  reviewButton.disabled = !fields.customFirmware.files?.length;
+  fields.fullImage.checked = false;
+  if (fields.customFirmware.files?.length) log(`Firmware personalizado: ${fields.customFirmware.files[0].name}`);
 });
 
 flashButton.addEventListener('click', async () => {
@@ -98,7 +111,12 @@ flashButton.addEventListener('click', async () => {
   try {
     const port = await navigator.serial.requestPort();
     const address = fields.fullImage.checked ? 0x000000 : 0x10000;
-    const flashedPort = await flashEsp32(port, fields.firmware.files[0], {
+    const firmware = selectedFirmware();
+    const firmwareFile = firmware instanceof File ? firmware : await fetch(firmware.url).then(response => {
+      if (!response.ok) throw new Error(`Não foi possível baixar o firmware: HTTP ${response.status}`);
+      return response.blob();
+    });
+    const flashedPort = await flashEsp32(port, firmwareFile, {
       address,
       eraseAll: fields.fullImage.checked,
       onProgress: percent => log(`Gravando firmware: ${percent.toFixed(1)}%`),
