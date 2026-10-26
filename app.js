@@ -1,5 +1,3 @@
-import { flashEsp32 } from './flash.js';
-
 const panels = [...document.querySelectorAll('.panel')];
 const steps = [...document.querySelectorAll('.step')];
 const backButton = document.querySelector('#back');
@@ -45,6 +43,7 @@ function buildSummary() {
 async function startFlash() {
   const value = config();
   if (!('serial' in navigator)) throw new Error('Web Serial não está disponível. Use Chrome ou Edge em HTTPS.');
+  const { flashEsp32 } = await import('./flash.js');
   const port = await navigator.serial.requestPort();
   const firmware = selectedFirmware();
   const firmwareFile = firmware instanceof File ? firmware : await fetch(firmware.url).then(response => { if (!response.ok) throw new Error(`Não foi possível baixar o firmware: HTTP ${response.status}`); return response.blob(); });
@@ -77,3 +76,5 @@ backButton.addEventListener('click', () => { if (current > 0 && current < 4) { c
 finishButton.addEventListener('click', () => { current = 0; render(current); log('Assistente reiniciado.'); });
 fields.firmware.addEventListener('change', () => { fields.fullImage.checked = fields.firmware.value.includes('-merged'); });
 fields.customFirmware.addEventListener('change', () => { fields.fullImage.checked = false; });
+
+render(current);
